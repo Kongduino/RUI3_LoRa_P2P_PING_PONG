@@ -8,6 +8,6 @@ In order to compile on RAK4631, a simple cmd-U / ctrl-U is enough (assuming you 
 
 `/Users/xxx/Library/Arduino15/packages/rak_rui/tools/arm-none-eabi-gcc/9-2019q4/bin/arm-none-eabi-size -A /var/folders/fg/nc6_868939q81qjxzv5g371w0000gn/T/arduino_build_605165/RUI3_LoRa_P2P_PING_PONG.ino.elf`
 
-The `/var/folders/fg/nc6_868939q81qjxzv5g371w0000gn/T/arduino_build_605165/` (name will be different) is what you need. Copy that and in the Terminal type `open ` and paste that path. Type enter and this appears in the Finder. I wrote a tool do do this for you, `arduino_build`, which does it for you. This will be made available shortly.
+The `/var/folders/fg/nc6_868939q81qjxzv5g371w0000gn/T/arduino_build_605165/` (name will be different) is what you need. Copy that and in the Terminal type `open ` and paste that path. Type enter and this appears in the Finder. I wrote a tool do do this for you, [arduino_build](https://github.com/Kongduino/arduino_build), which does it for you.
 
 ![arduino_build](arduino_build.png)
