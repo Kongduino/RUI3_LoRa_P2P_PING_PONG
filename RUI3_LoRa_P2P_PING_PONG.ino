@@ -1,13 +1,16 @@
+bool fullBW = true;
 long startTime;
 bool rx_done = false;
 // LoRa SETUP
 // The LoRa chip come pre-wired: all you need to do is define the parameters:
 // frequency, SF, BW, CR, Preamble Length and TX power
-double myFreq = 868000000;
-uint16_t counter = 0, sf = 12, bw = 125, cr = 0, preamble = 8, txPower = 22;
+double myFreq = 868125000;
+uint16_t counter = 0, sf = 12, bw = 0, cr = 0, preamble = 8, txPower = 22;
+uint8_t maxBW = 9;
+uint32_t myBWs[10] = {125, 250, 500, 7.8, 10.4, 15.63, 20.83, 31.25, 41.67, 62.5};
 
 void hexDump(uint8_t* buf, uint16_t len) {
-  // Something similar to the Unix/Linux dexdump -C command
+  // Something similar to the Unix/Linux hexdump -C command
   // Pretty-prints the contents of a buffer, 16 bytes a row
   char alphabet[17] = "0123456789abcdef";
   uint16_t i, index;
@@ -71,21 +74,45 @@ void send_cb(void) {
 }
 
 void setup() {
-  Serial.begin(115200);
+  delay(1000);
+  Serial.begin(115200, RAK_CUSTOM_MODE);
+  // RAK_CUSTOM_MODE disables AT firmware parsing
+  delay(5000);
+  uint8_t x = 5;
+  while (x > 0) {
+    Serial.printf("%d, ", x--);
+    delay(500);
+  } // Just for show
+  Serial.println("0!");
+  Serial.println("------------------------------------------------------");
   Serial.println("RAKwireless LoRaWan P2P Example");
   Serial.println("------------------------------------------------------");
+  char version[32] = {0};
+  strcpy(version, api.system.firmwareVersion.get().c_str());
+  Serial.printf("RUI3 version: %s\n", version);
+  if (version[6] < '5') {
+    fullBW = false;
+    maxBW = 2;
+  } else {
+    fullBW = true;
+    maxBW = 9;
+  }
+  Serial.printf("Full BW version: %s\n", fullBW ? "yes" : "no");
   delay(2000);
   startTime = millis();
   Serial.println("P2P Start");
   Serial.printf("Hardware ID: %s\r\n", api.system.chipId.get().c_str());
-  Serial.printf("Model ID: %s\r\n", api.system.modelId.get().c_str());
+  Serial.printf("Model ID: %s\r\n", api.system.hwModel.get().c_str());
   Serial.printf("RUI API Version: %s\r\n", api.system.apiVersion.get().c_str());
-  Serial.printf("Firmware Version: %s\r\n", api.system.firmwareVersion.get().c_str());
-  Serial.printf("AT Command Version: %s\r\n", api.system.cliVersion.get().c_str());
-  Serial.printf("Set work mode to P2P: %s\r\n", api.lorawan.nwm.set(0) ? "Success" : "Fail");
+  Serial.printf("Firmware Version: %s\r\n", api.system.firmwareVer.get().c_str());
+  // Serial.printf("AT Command Version: %s\r\n", api.system.cliVer.get().c_str());
+  // Serial.printf("Set work mode to P2P: %s\r\n", api.lorawan.nwm.set(0) ? "Success" : "Fail");
   Serial.printf("Set P2P frequency to %3.3f: %s\r\n", (myFreq / 1e6), api.lorawan.pfreq.set(myFreq) ? "Success" : "Fail");
   Serial.printf("Set P2P spreading factor to %d: %s\r\n", sf, api.lorawan.psf.set(sf) ? "Success" : "Fail");
-  Serial.printf("Set P2P bandwidth to %d: %s\r\n", bw, api.lorawan.pbw.set(bw) ? "Success" : "Fail");
+  bool rslt;
+  if (fullBW) rslt = api.lorawan.pbw.set(bw);
+  else rslt = api.lorawan.pbw.set(myBWs[bw]);
+  Serial.printf("Set P2P bandwidth to %d: %s\r\n", myBWs[bw], rslt ? "Success" : "Fail");
   Serial.printf("Set P2P code rate to 4/%d: %s\r\n", (cr + 5), api.lorawan.pcr.set(0) ? "Success" : "Fail");
   Serial.printf("Set P2P preamble length to %d: %s\r\n", preamble, api.lorawan.ppl.set(8) ? "Success" : "Fail");
   Serial.printf("Set P2P TX power to %d: %s\r\n", txPower, api.lorawan.ptp.set(22) ? "Success" : "Fail");
